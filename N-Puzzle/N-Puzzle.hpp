@@ -1,5 +1,5 @@
-#ifndef EIGHT_PUZZLE_HPP
-#define EIGHT_PUZZLE_HPP
+#ifndef N_PUZZLE_HPP
+#define N_PUZZLE_HPP
 
 #include <queue>
 #include <vector>
@@ -9,7 +9,7 @@
 
 typedef std::priority_queue<State, std::vector<State>, StateCompare> CostQueue;
 
-class EightPuzzle {
+class N_Puzzle {
     private:
         State currentState;
         State goalState;
@@ -17,10 +17,10 @@ class EightPuzzle {
         CostQueue frontier;
         
     public:
-        EightPuzzle();  // For both constructors, set frontier(StateCompare(true)) before pushing initial state
-        EightPuzzle(State currentState);
+        N_Puzzle();  // For both constructors, set frontier(StateCompare(true)) before pushing initial state
+        N_Puzzle(State currentState);
         int solve();
-        ~EightPuzzle();
+        ~N_Puzzle();
 };
 
 /*
