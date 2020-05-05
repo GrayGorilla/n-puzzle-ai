@@ -20,8 +20,15 @@ class N_Puzzle {
         N_Puzzle();  // For both constructors, set frontier(StateCompare(true)) before pushing initial state
         N_Puzzle(State currentState);
         int solve();
-        std::vector<int> randomPuzzle();
         ~N_Puzzle();
 };
+
+/*
+goalState = {
+    { 1, 2, 3 },
+    { 4, 5, 6 },
+    { 7, 8, 0 }
+};
+*/
 
 #endif
