@@ -35,7 +35,7 @@ class State {
         // Factory
         std::shared_ptr<State> makeMove(const Direction dir) const;
         // Destructor
-        ~State() { std::cout << "<State de-allocated.>" << endl; }
+        ~State() { std::cout << "<State de-allocated>" << std::endl; }
 };
 
 class StateCompare {

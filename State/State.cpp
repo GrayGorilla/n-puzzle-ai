@@ -109,7 +109,7 @@ shared_ptr<State> State::makeMove(Direction dir) const {
 /* StateCompare method implementations */
 
 // Enables reversing priority queue
-bool StateCompare::operator()(const std::shared_ptr<State>& lhs, const std::shared_ptr<State>& rhs) const {
+bool StateCompare::operator()(const shared_ptr<State>& lhs, const shared_ptr<State>& rhs) const {
     if (this->reverse) {
         return (lhs->getCost() > rhs->getCost());
     } else {
