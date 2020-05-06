@@ -2,23 +2,19 @@
 #include "State.hpp"
 using namespace std;
 
-void State::setMatrix(vector<int> rawMatrix) {
+void State::setMatrix(const vector<int> rawMatrix, int cost) {
     int count = 1, puzzLength = sqrt(rawMatrix.size());
     vector<int> row;
     this->matrix.clear();
 
     for (auto val : rawMatrix) {
-        if (count % puzzLength == 0) {
-            this->matrix.push_back(row);
-            row.clear();
-        }
         row.push_back(val);
         count++;
+        if (count % puzzLength != 1) continue;
+        
+        this->matrix.push_back(row);
+        row.clear();
     }
-}
-
-void State::setMatrix(vector<int> rawMatrix, int cost) {
-    this->setMatrix(rawMatrix);
     this->cost = cost;
 }
 
@@ -29,6 +25,7 @@ void State::printMatrix() const {
         }
         cout << endl;
     }
+    cout << endl;
 }
 
 // Enables reversing priority queue

@@ -1,10 +1,9 @@
-#include <iostream>
 #include <ctime>
 #include <cmath>
 #include "N-Puzzle.hpp"
 using namespace std;
 
-N_Puzzle::N_Puzzle() {
+N_Puzzle::N_Puzzle(const vector<int> initial) {
     int puzzLength = sqrt(PUZZLE + 1);
     vector<int> rawMatrix;
     srand(time(nullptr));
@@ -15,25 +14,17 @@ N_Puzzle::N_Puzzle() {
         exit(1);
     }
 
-    // Set goal state
-    for (int val = 1; val <= pow(puzzLength, 2); val++) {
-        if (val == pow(puzzLength, 2)) {
-            rawMatrix.push_back(val);
-        } else {
-            rawMatrix.push_back(val);
-        }
-    }
+    // Set current & goal states
+    this->currentState = make_shared<State>(initial, 0);
+    this->goalState = make_shared<State>(GOAL, -1);
 
-    this->goalState.setMatrix(rawMatrix, 0);
-    this->goalState.printMatrix();
-}
-
-vector<int> randomPuzzle() {
-    return vector<int>();
+    this->currentState->printMatrix();
+    this->goalState->printMatrix();
 }
 
 int N_Puzzle::solve() {
+    // todo: Set frontier(StateCompare(true)) before pushing initial state
     cout << "Write code to solve this puzzle!" << endl;
 }
 
-N_Puzzle::~N_Puzzle() { cout << "N-Puzzle dealocated" << endl; }
+N_Puzzle::~N_Puzzle() { cout << "N-Puzzle dealocated." << endl; }

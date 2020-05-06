@@ -1,10 +1,8 @@
-#include <iostream>
-#include <memory>
 #include "N-Puzzle/N-Puzzle.hpp"
 using namespace std;
 
 int main() {
-    auto puzzle = make_unique<N_Puzzle>();
+    auto puzzle = make_unique<N_Puzzle>(VERY_EASY);
     puzzle->solve();
     return 0;
 }
