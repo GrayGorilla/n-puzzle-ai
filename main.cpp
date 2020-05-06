@@ -2,7 +2,7 @@
 using namespace std;
 
 int main() {
-    auto puzzle = make_unique<N_Puzzle>(VERY_EASY);
+    auto puzzle = make_unique<N_Puzzle>(DOABLE);
     puzzle->solve();
     return 0;
 }

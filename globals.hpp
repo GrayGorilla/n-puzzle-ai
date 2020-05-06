@@ -5,7 +5,9 @@
 
 enum Direction { UP, DOWN, LEFT, RIGHT };
 const int PUZZLE = 8;
+const int PUZZLE_LENGTH = 3;
 
+// Raw Matricies
 const std::vector<int> GOAL = { 1, 2, 3, 4, 5, 6, 7, 8, 0 };
 const std::vector<int> TRIVIAL = { 1, 2, 3, 4, 5, 6, 7, 8, 0 };
 const std::vector<int> VERY_EASY = { 1, 2, 3, 4, 5, 6, 7, 0, 8 };
