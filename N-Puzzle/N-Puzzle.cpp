@@ -1,4 +1,5 @@
 #include <chrono>
+#include <stack>
 #include <cmath>
 #include "N-Puzzle.hpp"
 using namespace std;
@@ -77,9 +78,9 @@ void N_Puzzle::solve() {
         this->frontier->pop();
         // Display trace if not prunned
         if (this->currentState->getEstCost() < this->minCost) {
-            heuristicVal = this->currentState->getHeuristicVal();
-            costEst = this->currentState->getEstCost();
-            cout << "The best state to expand with g(n) = " << (costEst - heuristicVal)
+            heuristicVal = this->currentState->getHeuristicVal();   // h(n)
+            distance = this->currentState->getDistance();           // g(n)
+            cout << "The best state to expand with g(n) = " << distance
                  << " & h(n) = " << heuristicVal << " is:" << endl;
             this->currentState->printMatrix();
             cout << "Expanding node..." << endl << endl;
@@ -90,10 +91,10 @@ void N_Puzzle::solve() {
 void N_Puzzle::makeMoves() {
     shared_ptr<State> nextState;
     for (int move = UP; move <= RIGHT; move++) {
-        nextState = this->currentState->makeMove(static_cast<Direction>(move));
+        nextState = this->currentState->makeMove(static_cast<Direction>(move), this->currentState);
         // Only access legal moves
         if (nextState) {
-            int heuristicVal = this->heuristic->heuristicValue(nextState);       // h(n)
+            int heuristicVal = this->heuristic->heuristicValue(nextState);
             nextState->setHeuristicVal(heuristicVal);
             this->frontier->push(nextState);
         }
@@ -107,6 +108,20 @@ void N_Puzzle::makeMoves() {
 /* Accessor */
 
 void N_Puzzle::printResults() {
+    int step = 0;
+    stack<shared_ptr<State>> traceBack;
+    for (shared_ptr<State> trace = this->solvedState; trace != nullptr; trace = trace->getParent()) {
+        traceBack.push(trace);
+    }
+    cout << "---------------Steps to solve---------------" << endl;
+    while (! traceBack.empty()) {
+        if (step) cout << "Step " << step << ':' << endl;
+        else cout << "Start:" << endl;
+        traceBack.top()->printMatrix();
+        traceBack.pop();
+        step++;
+    }
+    cout << "-----------------Final step-----------------" << endl;
     cout << "To solve this puzzle, the search algorithm expanded a total of "
          << this->totalNodesExpanded << " node(s)." << endl;
     cout << "The maximum number of nodes in the queue at any one time: " 
