@@ -25,13 +25,14 @@ class N_Puzzle {
         
     public:
         // Constructor
-        N_Puzzle(const std::vector<int> initial);
+        N_Puzzle();
+        // Mutators
+        void greetUser();
+        void solve();
+        void makeMoves();
         // Accessors
         std::shared_ptr<State> getCurrent() const { return this->currentState; }
         void printResults();
-        // Mutators
-        void solve();
-        void makeMoves();
         // Static methods
         static Matrix convertRawMatrix(const std::vector<int> rawMatrix);
         static std::string matrixToString(const Matrix matrix);

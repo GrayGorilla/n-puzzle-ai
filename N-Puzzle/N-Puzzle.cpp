@@ -1,12 +1,13 @@
 #include <chrono>
 #include <stack>
 #include <cmath>
+#include <sstream>
 #include "N-Puzzle.hpp"
 using namespace std;
 
 /* Constructor */
 
-N_Puzzle::N_Puzzle(const vector<int> initial) {
+N_Puzzle::N_Puzzle() {
     int puzzLength = sqrt(PUZZLE + 1);
 
     // Exit if puzzle type invalid
@@ -15,30 +16,110 @@ N_Puzzle::N_Puzzle(const vector<int> initial) {
         exit(1);
     }
     // Set current & goal states
+    this->frontier = make_unique<CostPriorityQueue>(StateCompare(true));
+    this->goalMatrix = N_Puzzle::convertRawMatrix(GOAL);
     this->found = false;
     this->totalNodesExpanded = 0;
     this->maxNodesInQueue = 0;
     this->minCost = static_cast<int>INFINITY;
-    this->goalMatrix = N_Puzzle::convertRawMatrix(GOAL);
-    this->frontier = make_unique<CostPriorityQueue>(StateCompare(true));
-    this->frontier->emplace(make_shared<State>(initial));
+    this->greetUser();
 }
 
 /* Mutators */
+
+void N_Puzzle::greetUser() {
+    string puzzleStr, rowOneStr, rowTwoStr, rowThreeStr, elementStr, algorithmStr;
+    vector<int> usersMatrix;
+    int puzzle, element, algorithm;
+    bool valid = true;
+    stringstream ss;
+
+    cout << "\n------------ Welcome to 862090718 Eight-Puzzle solver ------------" << endl;
+    // Select puzzle
+    do {
+        cout << "Type '1' to use a default puzzle, or '2' to enter your own puzzle." << endl << ">  ";
+        getline(cin, puzzleStr);
+        puzzle = stoi(puzzleStr);
+        switch (puzzle) {
+            // Default puzzle (OH_BOY arg: replace with any default puzzle stored in global.hpp)
+            case 1:
+                this->frontier->emplace(make_shared<State>(OH_BOY));
+                valid = true;
+                break;
+            // Custom puzzle
+            case 2:
+                cout << "\nEnter your puzzle, use a zero to represent the blank." << endl
+                     << "Enter the 1st row, use spaces or tabs between numbers:  ";
+                getline(cin, rowOneStr);
+                cout << "Enter the 2nd row, use spaces or tabs between numbers:  ";
+                getline(cin, rowTwoStr);
+                cout << "Enter the 3rd row, use spaces or tabs between numbers:  ";
+                getline(cin, rowThreeStr);
+
+                ss << rowOneStr << ' ' << rowTwoStr << ' ' << rowThreeStr;
+                cout << "Elements:";
+                while (ss >> elementStr) {
+                    cout << " " << elementStr;
+                    element = stoi(elementStr);
+                    usersMatrix.push_back(element);
+                }
+                cout << '\n';
+                this->frontier->emplace(make_shared<State>(usersMatrix));
+                valid = true;
+                break;
+            default:
+                cout << "Invalid entry." << endl << endl;
+                valid = false;
+                break;
+        }
+    } while (! valid);
+    cout << endl;
+    
+    // Select algorithm
+    do {
+        cout << "Enter your choice of algorithm." << endl
+             << "1:  Uniform Cost Search" << endl
+             << "2:  A* with the Misplaced Tile heuristic." << endl
+             << "3:  A* with the Eucledian Distance heuristic." << endl << ">  ";
+        getline(cin, algorithmStr);
+        algorithm = stoi(algorithmStr);
+        switch (algorithm) {
+            // Uniform Cost Search
+            case 1:
+                this->heuristic = make_unique<UniformCostSearch>();
+                valid = true;
+                break;
+            case 2:
+                this->heuristic = make_unique<AStarMisplacedTile>();
+                valid = true;
+                break;
+            case 3:
+                this->heuristic = make_unique<AStarEuclidianDistance>();
+                valid = true;
+                break;
+            default:
+                cout << "Invalid entry." << endl << endl;
+        }
+    } while (! valid);
+    cout << endl;
+}
 
 void N_Puzzle::solve() {
     int distance, heuristicVal, costEst;
     string stateStr;
     auto startTime = chrono::high_resolution_clock::now();
-    // Get heuristic
-    this->heuristic = make_unique<UniformCostSearch>();
-    // Get initial state
+
+    cout << "Solving..." << endl << endl;
+    // Pop initial state from frontier
     this->currentState = this->frontier->top();
     this->frontier->pop();
-    // Mark as visited node
-    this->visitedNodes.insert(N_Puzzle::matrixToString(this->currentState->getMatrix()));
+    // Allow repeats of goalMatricies, but no other repeats
+    if (this->currentState->getMatrix() != goalMatrix) {
+        // Mark as visited node
+        this->visitedNodes.insert(N_Puzzle::matrixToString(this->currentState->getMatrix()));
+    }
     // Print initial state
-    cout << "\nExpanding initial state:" << endl;
+    cout << "Expanding initial state:" << endl;
     this->currentState->printMatrix();
 
     // Expand nodes until optimal path is found
@@ -46,21 +127,14 @@ void N_Puzzle::solve() {
         // Goal state reached
         if (this->currentState->getMatrix() == this->goalMatrix) {
             costEst = this->currentState->getEstCost();
-            // Update min moves
+            // Most optimal solution; update min moves
             if (costEst < this->minCost) {
                 // First solution found
                 if (! this->found) {
-                    cout << "First solution found !" << endl << endl;
                     this->found = true;
-                // Better solution found
-                } else {
-                    cout << "More optimal solution found !" << endl << endl;
                 }
                 this->solvedState = this->currentState;
                 this->minCost = costEst;
-            // Lesser solution found
-            } else {
-                cout << "Solution found." << endl << endl;
             }
         // Not goal, expand current node (unless pruned)
         } else if (! this->found || this->currentState->getEstCost() < this->minCost) {
@@ -81,11 +155,15 @@ void N_Puzzle::solve() {
             // Pop node off the queue => make it new current node
             this->currentState = this->frontier->top();
             this->frontier->pop();
-            stateStr = N_Puzzle::matrixToString(this->currentState->getMatrix());
+            auto currentNode = this->currentState->getMatrix();
+            stateStr = N_Puzzle::matrixToString(currentNode);
             // Current node not found in visitedNodes (non-repeated state)
             if (this->visitedNodes.find(stateStr) == visitedNodes.end()) {
-                // Mark as visited node
-                visitedNodes.insert(stateStr);
+                // Allow repeats of goalMatricies, but no other repeats
+                if (currentNode != goalMatrix) {
+                    // Mark as visited node
+                    visitedNodes.insert(stateStr);
+                }
                 break;
             // No solution found, but frontier empty
             } else if (! this->found && this->frontier->empty()) {
@@ -138,7 +216,7 @@ void N_Puzzle::printResults() {
         traceBack.pop();
         step++;
     }
-    cout << "-----------------Final step-----------------" << endl;
+    cout << "-------------Final step reached-------------" << endl;
     cout << "To solve this puzzle, the search algorithm expanded a total of "
          << this->totalNodesExpanded << " node(s)." << endl;
     cout << "The maximum number of nodes in the queue at any one time: " 
