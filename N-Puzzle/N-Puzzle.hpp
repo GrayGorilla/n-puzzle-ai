@@ -10,7 +10,6 @@ typedef std::priority_queue<std::shared_ptr<State>, std::vector<std::shared_ptr<
 
 class N_Puzzle {
     private:
-        std::shared_ptr<N_Puzzle> smartThis;
         std::shared_ptr<State> currentState;
         std::shared_ptr<State> solvedState;
         Matrix goalMatrix;
@@ -25,8 +24,6 @@ class N_Puzzle {
     public:
         // Constructor
         N_Puzzle(const std::vector<int> initial);
-        // Smart this pointer
-        void createSmartThis(std::shared_ptr<N_Puzzle> sPtr) { this->smartThis = sPtr; }
         // Accessors
         std::shared_ptr<State> getCurrent() const { return this->currentState; }
         void printResults();
@@ -35,8 +32,6 @@ class N_Puzzle {
         void makeMoves();
         // Static method
         static Matrix convertRawMatrix(const std::vector<int> rawMatrix);
-        // Destructor
-        ~N_Puzzle();
 };
 
 #endif

@@ -2,8 +2,7 @@
 using namespace std;
 
 int main() {
-    auto puzzle = make_shared<N_Puzzle>(OH_BOY);
-    puzzle->createSmartThis(puzzle);
+    auto puzzle = make_shared<N_Puzzle>(DOABLE);
     puzzle->solve();
     return 0;
 }

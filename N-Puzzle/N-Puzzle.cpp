@@ -29,7 +29,7 @@ void N_Puzzle::solve() {
     int distance, heuristicVal, costEst;
     auto startTime = chrono::high_resolution_clock::now();
     // Get heuristic
-    this->heuristic = make_unique<AStarMisplacedTile>();
+    this->heuristic = make_unique<AStarEuclidianDistance>();
     // Get initial state
     this->currentState = this->frontier->top();
     this->frontier->pop();
@@ -132,7 +132,3 @@ Matrix N_Puzzle::convertRawMatrix(const vector<int> rawMatrix) {
     }
     return newMatrix;
 }
-
-/* Destructor */
-
-N_Puzzle::~N_Puzzle() { cout << "<N-Puzzle de-alocated>" << endl; }
