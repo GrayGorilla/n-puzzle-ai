@@ -3,30 +3,30 @@
 
 #include <memory>
 
-class N_Puzzle;
+class State;
 
 class Heuristic {
     public:
         Heuristic() {}
-        virtual int heuristicValue(std::shared_ptr<N_Puzzle> puzzle) = 0;
+        virtual int heuristicValue(const std::shared_ptr<State> nextState) = 0;
 };
 
-class UniformCostSearch : Heuristic {
+class UniformCostSearch : public Heuristic {
     public:
         UniformCostSearch() {}
-        virtual int heuristicValue(std::shared_ptr<N_Puzzle> puzzle) override;
+        virtual int heuristicValue(const std::shared_ptr<State> nextState) override;
 };
 
-class aStarMisplacedTile : Heuristic {
+class AStarMisplacedTile : public Heuristic {
     public:
-        aStarMisplacedTile() {}
-        virtual int heuristicValue(std::shared_ptr<N_Puzzle> puzzle) override;
+        AStarMisplacedTile() {}
+        virtual int heuristicValue(const std::shared_ptr<State> nextState) override;
 };
 
-class aStarEuclidianDistance : Heuristic {
+class AStarEuclidianDistance : public Heuristic {
     public:
-        aStarEuclidianDistance() {}
-        virtual int heuristicValue(std::shared_ptr<N_Puzzle> puzzle) override;
+        AStarEuclidianDistance() {}
+        virtual int heuristicValue(const std::shared_ptr<State> nextState) override;
 };
 
 #endif

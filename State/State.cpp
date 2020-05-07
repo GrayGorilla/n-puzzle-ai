@@ -35,7 +35,23 @@ shared_ptr<State> State::copyAndSwap(const pair<int, int> a, const pair<int, int
 
     child[a.first][a.second] = y;
     child[b.first][b.second] = x;
-    return make_shared<State>(child, this->cost);
+    return make_shared<State>(child, this->distance + 1);
+}
+
+void State::setMatrixDistHeurist(const vector<int> rawMatrix, const int distance, const double heuristicVal) {
+    int count = 1, puzzLength = sqrt(rawMatrix.size());
+    vector<int> row;
+    this->matrix.clear();
+
+    for (auto val : rawMatrix) {
+        row.push_back(val);
+        count++;
+        if (count % puzzLength != 1) continue;
+        
+        this->matrix.push_back(row);
+        row.clear();
+    }
+    this->distance = distance;
 }
 
 // Accessors
@@ -49,23 +65,6 @@ void State::printMatrix() const {
         cout << endl;
     }
     cout << endl;
-}
-
-// Mutators
-void State::setMatrixAndCost(const vector<int> rawMatrix, const int cost) {
-    int count = 1, puzzLength = sqrt(rawMatrix.size());
-    vector<int> row;
-    this->matrix.clear();
-
-    for (auto val : rawMatrix) {
-        row.push_back(val);
-        count++;
-        if (count % puzzLength != 1) continue;
-        
-        this->matrix.push_back(row);
-        row.clear();
-    }
-    this->cost = cost;
 }
 
 // Factory
@@ -111,8 +110,8 @@ shared_ptr<State> State::makeMove(Direction dir) const {
 // Enables reversing priority queue
 bool StateCompare::operator()(const shared_ptr<State>& lhs, const shared_ptr<State>& rhs) const {
     if (this->reverse) {
-        return (lhs->getCost() > rhs->getCost());
+        return (lhs->getEstCost() > rhs->getEstCost());
     } else {
-        return (lhs->getCost() < rhs->getCost());
+        return (lhs->getEstCost() < rhs->getEstCost());
     }
 }

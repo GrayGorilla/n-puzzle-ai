@@ -10,23 +10,32 @@ typedef std::priority_queue<std::shared_ptr<State>, std::vector<std::shared_ptr<
 
 class N_Puzzle {
     private:
+        std::shared_ptr<N_Puzzle> smartThis;
         std::shared_ptr<State> currentState;
         std::shared_ptr<State> solvedState;
         Matrix goalMatrix;
         std::unique_ptr<Heuristic> heuristic;
         std::unique_ptr<CostPriorityQueue> frontier;
-        long long recordTime;
+        unsigned long long recordTime;
         int totalNodesExpanded;
         int maxNodesInQueue;
         int minCost;
         bool found;
         
     public:
+        // Constructor
         N_Puzzle(const std::vector<int> initial);
-        Matrix convertRawMatrix(const std::vector<int> rawMatrix) const;
+        // Smart this pointer
+        void createSmartThis(std::shared_ptr<N_Puzzle> sPtr) { this->smartThis = sPtr; }
+        // Accessors
+        std::shared_ptr<State> getCurrent() const { return this->currentState; }
+        void printResults();
+        // Mutators
         void solve();
         void makeMoves();
-        void printResults();
+        // Static method
+        static Matrix convertRawMatrix(const std::vector<int> rawMatrix);
+        // Destructor
         ~N_Puzzle();
 };
 

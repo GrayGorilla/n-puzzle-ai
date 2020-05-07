@@ -3,10 +3,10 @@
 #include "N-Puzzle.hpp"
 using namespace std;
 
+/* Constructor */
+
 N_Puzzle::N_Puzzle(const vector<int> initial) {
     int puzzLength = sqrt(PUZZLE + 1);
-    vector<int> rawMatrix;
-    srand(time(nullptr));
 
     // Exit if puzzle type invalid
     if (puzzLength != floor(puzzLength)) {
@@ -18,30 +18,18 @@ N_Puzzle::N_Puzzle(const vector<int> initial) {
     this->totalNodesExpanded = 0;
     this->maxNodesInQueue = 0;
     this->minCost = static_cast<int>INFINITY;
-    this->goalMatrix = this->convertRawMatrix(GOAL);
+    this->goalMatrix = N_Puzzle::convertRawMatrix(GOAL);
     this->frontier = make_unique<CostPriorityQueue>(StateCompare(true));
-    this->frontier->emplace(make_shared<State>(initial, 0));
+    this->frontier->emplace(make_shared<State>(initial));
 }
 
-Matrix N_Puzzle::convertRawMatrix(const vector<int> rawMatrix) const {
-    int count = 1;
-    vector<int> row;
-    Matrix newMatrix;
-
-    for (auto val : rawMatrix) {
-        row.push_back(val);
-        count++;
-        if (count % PUZZLE_LENGTH != 1) continue;
-        
-        newMatrix.push_back(row);
-        row.clear();
-    }
-    return newMatrix;
-}
+/* Mutators */
 
 void N_Puzzle::solve() {
-    int currentCost, heuristicVal;
+    int distance, heuristicVal, costEst;
     auto startTime = chrono::high_resolution_clock::now();
+    // Get heuristic
+    this->heuristic = make_unique<AStarMisplacedTile>();
     // Get initial state
     this->currentState = this->frontier->top();
     this->frontier->pop();
@@ -53,9 +41,9 @@ void N_Puzzle::solve() {
     while (true) {
         // Goal state reached
         if (this->currentState->getMatrix() == this->goalMatrix) {
-            currentCost = this->currentState->getCost();
+            costEst = this->currentState->getEstCost();
             // Update min moves
-            if (currentCost < this->minCost) {
+            if (costEst < this->minCost) {
                 // First solution found
                 if (! this->found) {
                     cout << "First solution found !" << endl << endl;
@@ -65,13 +53,13 @@ void N_Puzzle::solve() {
                     cout << "More optimal solution found !" << endl << endl;
                 }
                 this->solvedState = this->currentState;
-                this->minCost = currentCost;
+                this->minCost = costEst;
             // Lesser solution found
             } else {
                 cout << "Solution found." << endl << endl;
             }
         // Not goal, expand current node (unless pruned)
-        } else if (! this->found || this->currentState->getCost() < this->minCost) {
+        } else if (! this->found || this->currentState->getEstCost() < this->minCost) {
             this->makeMoves();
             this->totalNodesExpanded++;
         }
@@ -88,11 +76,11 @@ void N_Puzzle::solve() {
         this->currentState = this->frontier->top();
         this->frontier->pop();
         // Display trace if not prunned
-        if (this->currentState->getCost() < this->minCost) {
-            heuristicVal = 0;       // todo: call heuristic function !!
-            currentCost = this->currentState->getCost() - heuristicVal;
-            cout << "The best state to expand with g(n) = " << currentCost
-                << " & h(n) = " << heuristicVal << " is:" << endl;
+        if (this->currentState->getEstCost() < this->minCost) {
+            heuristicVal = this->currentState->getHeuristicVal();
+            costEst = this->currentState->getEstCost();
+            cout << "The best state to expand with g(n) = " << (costEst - heuristicVal)
+                 << " & h(n) = " << heuristicVal << " is:" << endl;
             this->currentState->printMatrix();
             cout << "Expanding node..." << endl << endl;
         }
@@ -100,15 +88,14 @@ void N_Puzzle::solve() {
 }
 
 void N_Puzzle::makeMoves() {
-    shared_ptr<State> currentMove;
-    int currentCost = this->currentState->getCost();    // g(n)
-    int heuristicVal = 0;                               // h(n)     // todo: call heuristic function !!
+    shared_ptr<State> nextState;
     for (int move = UP; move <= RIGHT; move++) {
-        currentMove = this->currentState->makeMove(static_cast<Direction>(move));
+        nextState = this->currentState->makeMove(static_cast<Direction>(move));
         // Only access legal moves
-        if (currentMove) {
-            currentMove->setCost(currentCost + 1 + heuristicVal);
-            this->frontier->push(currentMove);
+        if (nextState) {
+            int heuristicVal = this->heuristic->heuristicValue(nextState);       // h(n)
+            nextState->setHeuristicVal(heuristicVal);
+            this->frontier->push(nextState);
         }
     }
     // Record largest queue
@@ -116,6 +103,8 @@ void N_Puzzle::makeMoves() {
         this->maxNodesInQueue = this->frontier->size();
     }
 }
+
+/* Accessor */
 
 void N_Puzzle::printResults() {
     cout << "To solve this puzzle, the search algorithm expanded a total of "
@@ -125,5 +114,25 @@ void N_Puzzle::printResults() {
     cout << "This puzzle was solved optimally in " << this->minCost <<" move(s) "
          << "& it took " << this->recordTime << " ms." << endl << endl;
 }
+
+/* Static method */
+
+Matrix N_Puzzle::convertRawMatrix(const vector<int> rawMatrix) {
+    int count = 1;
+    vector<int> row;
+    Matrix newMatrix;
+
+    for (auto val : rawMatrix) {
+        row.push_back(val);
+        count++;
+        if (count % PUZZLE_LENGTH != 1) continue;
+        
+        newMatrix.push_back(row);
+        row.clear();
+    }
+    return newMatrix;
+}
+
+/* Destructor */
 
 N_Puzzle::~N_Puzzle() { cout << "<N-Puzzle de-alocated>" << endl; }
