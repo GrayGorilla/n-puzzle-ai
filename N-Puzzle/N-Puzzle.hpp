@@ -3,6 +3,7 @@
 
 #include <queue>
 #include <sstream>
+#include <unordered_set>
 #include "../State/State.hpp"
 #include "../Heuristic/Heuristic.hpp"
 
@@ -15,6 +16,7 @@ class N_Puzzle {
         Matrix goalMatrix;
         std::unique_ptr<Heuristic> heuristic;
         std::unique_ptr<CostPriorityQueue> frontier;
+        std::unordered_set<std::string> visitedNodes;
         unsigned long long recordTime;
         int totalNodesExpanded;
         int maxNodesInQueue;
@@ -30,8 +32,9 @@ class N_Puzzle {
         // Mutators
         void solve();
         void makeMoves();
-        // Static method
+        // Static methods
         static Matrix convertRawMatrix(const std::vector<int> rawMatrix);
+        static std::string matrixToString(const Matrix matrix);
 };
 
 #endif

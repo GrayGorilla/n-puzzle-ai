@@ -28,12 +28,15 @@ N_Puzzle::N_Puzzle(const vector<int> initial) {
 
 void N_Puzzle::solve() {
     int distance, heuristicVal, costEst;
+    string stateStr;
     auto startTime = chrono::high_resolution_clock::now();
     // Get heuristic
-    this->heuristic = make_unique<AStarEuclidianDistance>();
+    this->heuristic = make_unique<UniformCostSearch>();
     // Get initial state
     this->currentState = this->frontier->top();
     this->frontier->pop();
+    // Mark as visited node
+    this->visitedNodes.insert(N_Puzzle::matrixToString(this->currentState->getMatrix()));
     // Print initial state
     cout << "\nExpanding initial state:" << endl;
     this->currentState->printMatrix();
@@ -73,9 +76,23 @@ void N_Puzzle::solve() {
             this->printResults();
             break;
         }
-        // Pop node off the queue => make it new current node
-        this->currentState = this->frontier->top();
-        this->frontier->pop();
+        // Loop here if repeated node reached
+        while (true) {
+            // Pop node off the queue => make it new current node
+            this->currentState = this->frontier->top();
+            this->frontier->pop();
+            stateStr = N_Puzzle::matrixToString(this->currentState->getMatrix());
+            // Current node not found in visitedNodes (non-repeated state)
+            if (this->visitedNodes.find(stateStr) == visitedNodes.end()) {
+                // Mark as visited node
+                visitedNodes.insert(stateStr);
+                break;
+            // No solution found, but frontier empty
+            } else if (! this->found && this->frontier->empty()) {
+                cout << "This puzzle is unsolvable.  Aborting procedure." << endl;
+                return;
+            }
+        }
         // Display trace if not prunned
         if (this->currentState->getEstCost() < this->minCost) {
             heuristicVal = this->currentState->getHeuristicVal();   // h(n)
@@ -130,7 +147,7 @@ void N_Puzzle::printResults() {
          << "& it took " << this->recordTime << " ms." << endl << endl;
 }
 
-/* Static method */
+/* Static methods */
 
 Matrix N_Puzzle::convertRawMatrix(const vector<int> rawMatrix) {
     int count = 1;
@@ -146,4 +163,14 @@ Matrix N_Puzzle::convertRawMatrix(const vector<int> rawMatrix) {
         row.clear();
     }
     return newMatrix;
+}
+
+string N_Puzzle::matrixToString(const Matrix matrix) {
+    string matrixStr = "[ ";
+    for (auto row : matrix) {
+        for (auto val : row) {
+            matrixStr += (val + ' ');
+        }
+    }
+    return matrixStr + ']';
 }
