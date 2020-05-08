@@ -57,13 +57,10 @@ void N_Puzzle::greetUser() {
                 getline(cin, rowThreeStr);
 
                 ss << rowOneStr << ' ' << rowTwoStr << ' ' << rowThreeStr;
-                cout << "Elements:";
                 while (ss >> elementStr) {
-                    cout << " " << elementStr;
                     element = stoi(elementStr);
                     usersMatrix.push_back(element);
                 }
-                cout << '\n';
                 this->frontier->emplace(make_shared<State>(usersMatrix));
                 valid = true;
                 break;
@@ -146,9 +143,9 @@ void N_Puzzle::solve() {
                 auto time = endTime - startTime;
                 this->recordTime = time / chrono::milliseconds(1);
                 cout << "Discovery - This puzzle is unsolvable." << endl << endl
-                     << "Nodes expanded: " << this->totalNodesExpanded << "nodes"<< endl
-                     << "Largest queue: " << this->maxNodesInQueue << "nodes" << endl
-                     << "Time elapsed: " << this->recordTime << "ms" << endl
+                     << "Nodes expanded: " << this->totalNodesExpanded << " nodes"<< endl
+                     << "Largest queue: " << this->maxNodesInQueue << " nodes" << endl
+                     << "Time elapsed: " << this->recordTime << " ms" << endl
                      << "Aborting procedure." << endl;
                 return;
             // Optimal solution locked in
