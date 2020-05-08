@@ -106,7 +106,7 @@ void N_Puzzle::greetUser() {
 
 void N_Puzzle::solve() {
     int distance, heuristicVal, costEst;
-    string stateStr;
+    // string stateStr;
     auto startTime = chrono::high_resolution_clock::now();
 
     cout << "Solving..." << endl << endl;
@@ -114,7 +114,7 @@ void N_Puzzle::solve() {
     this->currentState = this->frontier->top();
     this->frontier->pop();
     // Allow repeats of goalMatricies, but no other repeats
-    if (this->currentState->getMatrix() != goalMatrix) {
+    if (this->currentState->getMatrix() != this->goalMatrix) {
         // Mark as visited node
         this->visitedNodes.insert(N_Puzzle::matrixToString(this->currentState->getMatrix()));
     }
@@ -127,12 +127,9 @@ void N_Puzzle::solve() {
         // Goal state reached
         if (this->currentState->getMatrix() == this->goalMatrix) {
             costEst = this->currentState->getEstCost();
-            // Most optimal solution; update min moves
+            // Optimal solution found; update min moves
             if (costEst < this->minCost) {
-                // First solution found
-                if (! this->found) {
-                    this->found = true;
-                }
+                this->found = true;
                 this->solvedState = this->currentState;
                 this->minCost = costEst;
             }
@@ -141,38 +138,34 @@ void N_Puzzle::solve() {
             this->makeMoves();
             this->totalNodesExpanded++;
         }
-        // Optimal solution locked in
+        // End Puzzle
         if (this->frontier->empty()) {
-            auto endTime = chrono::high_resolution_clock::now();
-            auto time = endTime - startTime;
-            this->recordTime = time / chrono::milliseconds(1);
-            cout << "Solved !!!" << endl << endl;
-            this->printResults();
-            break;
-        }
-        // Loop here if repeated node reached
-        while (true) {
-            // Pop node off the queue => make it new current node
-            this->currentState = this->frontier->top();
-            this->frontier->pop();
-            auto currentNode = this->currentState->getMatrix();
-            stateStr = N_Puzzle::matrixToString(currentNode);
-            // Current node not found in visitedNodes (non-repeated state)
-            if (this->visitedNodes.find(stateStr) == visitedNodes.end()) {
-                // Allow repeats of goalMatricies, but no other repeats
-                if (currentNode != goalMatrix) {
-                    // Mark as visited node
-                    visitedNodes.insert(stateStr);
-                }
-                break;
-            // No solution found, but frontier empty
-            } else if (! this->found && this->frontier->empty()) {
-                cout << "This puzzle is unsolvable.  Aborting procedure." << endl;
+            // Impossible Puzzle discovered
+            if (! this->found) {
+                auto endTime = chrono::high_resolution_clock::now();
+                auto time = endTime - startTime;
+                this->recordTime = time / chrono::milliseconds(1);
+                cout << "Discovery - This puzzle is unsolvable." << endl << endl
+                     << "Nodes expanded: " << this->totalNodesExpanded << "nodes"<< endl
+                     << "Largest queue: " << this->maxNodesInQueue << "nodes" << endl
+                     << "Time elapsed: " << this->recordTime << "ms" << endl
+                     << "Aborting procedure." << endl;
                 return;
+            // Optimal solution locked in
+            } else {
+                auto endTime = chrono::high_resolution_clock::now();
+                auto time = endTime - startTime;
+                this->recordTime = time / chrono::milliseconds(1);
+                cout << "Solved !!!" << endl << endl;
+                this->printResults();
+                break;
             }
         }
-        // Display trace if not prunned
-        if (this->currentState->getEstCost() < this->minCost) {
+        // Pop node off the queue => make it new current node
+        this->currentState = this->frontier->top();
+        this->frontier->pop();
+        // Display trace for new currentState if not prunned
+        if (! this->found || this->currentState->getEstCost() < this->minCost) {
             heuristicVal = this->currentState->getHeuristicVal();   // h(n)
             distance = this->currentState->getDistance();           // g(n)
             cout << "The best state to expand with g(n) = " << distance
@@ -185,13 +178,23 @@ void N_Puzzle::solve() {
 
 void N_Puzzle::makeMoves() {
     shared_ptr<State> nextState;
+    string nodeStr;
     for (int move = UP; move <= RIGHT; move++) {
         nextState = this->currentState->makeMove(static_cast<Direction>(move), this->currentState);
         // Only access legal moves
         if (nextState) {
-            int heuristicVal = this->heuristic->heuristicValue(nextState);
-            nextState->setHeuristicVal(heuristicVal);
-            this->frontier->push(nextState);
+            auto nextNode = nextState->getMatrix();
+            nodeStr = N_Puzzle::matrixToString(nextState->getMatrix());
+            // Only add non-repeating states to frontier
+            if (this->visitedNodes.find(nodeStr) == visitedNodes.end()) {
+                // Allow repeats of goalMatricies but no other repeats
+                if (nextNode != this->goalMatrix) {
+                    this->visitedNodes.insert(nodeStr);
+                }
+                int heuristicVal = this->heuristic->heuristicValue(nextState);
+                nextState->setHeuristicVal(heuristicVal);
+                this->frontier->push(nextState);
+            }
         }
     }
     // Record largest queue
